@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class SG_Endpoints {
 	public function __construct() {
-		add_action('rest_api_init', 'sg_register_api_route');
+		add_action('rest_api_init', array($this, 'sg_register_api_route'));
 	}
 
     function sg_create_payment_intent($request) {
@@ -80,10 +80,7 @@ class SG_Endpoints {
     function sg_register_api_route() {
         register_rest_route('stripe-payment-gateway/v1', '/create-payment-intent', array(
             'methods' => 'POST',
-            'callback' => 'sg_create_payment_intent',
-            'permission_callback' => function () {
-                return true;
-            },
+            'callback' => array($this, 'sg_create_payment_intent'),
         ));
     }
 
