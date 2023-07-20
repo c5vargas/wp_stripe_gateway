@@ -1,8 +1,8 @@
+![Stripe Gateway](https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Stripe_Logo%2C_revised_2016.svg/2560px-Stripe_Logo%2C_revised_2016.svg.png)
+
 # Stripe Gateway Plugin
 
 El plugin Stripe Gateway te permite integrar la pasarela de pago de Stripe en tu tienda WooCommerce para aceptar pagos con tarjetas de crédito y débito.
-
-![Stripe Gateway](https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Stripe_Logo%2C_revised_2016.svg/2560px-Stripe_Logo%2C_revised_2016.svg.png)
 
 ## Características
 
