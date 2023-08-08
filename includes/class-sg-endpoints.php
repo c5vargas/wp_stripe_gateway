@@ -125,9 +125,7 @@ class SG_Endpoints {
                 'message' => null
             );
     
-        } catch (\Stripe\Exception\ApiErrorException $e) {
-            error_log('Error al crear el Payment Intent: ' . $e->getMessage());
-    
+        } catch (\Stripe\Exception\ApiErrorException $e) {    
             return array(
                 'status' => false,
                 'client_secret' => null,
@@ -136,6 +134,51 @@ class SG_Endpoints {
         }
     }
     
+    function sg_create_user_account($request) {
+        try {
+            $parameters 	= $request->get_params();
+            $username       = sanitize_text_field($parameters['username']);
+            $email          = sanitize_text_field($parameters['email']);
+            $password       = sanitize_text_field($parameters['password']);
+            $repassword     = sanitize_text_field($parameters['repassword']);
+
+            if(empty($username) || empty($email) || empty($password) || empty($repassword)){
+                return array(
+                    'status' => false,
+                    'message' => __( "All form fields are required.", 'wc-rest-payment' )
+                );
+            }
+
+            if($password != $repassword) {
+                return array(
+                    'status' => false,
+                    'message' => __( "Password confirmation does not match.", 'wc-rest-payment' )
+                );
+            }
+
+            try {
+                $userId = wc_create_new_customer($email, $username, $password);
+                
+                if($userId) {
+                    return array(
+                        'status' => true,
+                        'response' => $user,
+                        'message' => null
+                    );
+                }
+            } catch (Exception $e) {
+                return array(
+                    'status' => false,
+                    'message' => $e->getMessage()
+                );
+            }
+        } catch (Exception $e) {    
+            return array(
+                'status' => false,
+                'message' => $e->getMessage()
+            );
+        }
+    }
     
     function sg_register_api_route() {
         register_rest_route('stripe-payment-gateway/v1', '/create-payment-intent', array(
@@ -146,6 +189,11 @@ class SG_Endpoints {
         register_rest_route('stripe-payment-gateway/v1', '/check-authentication', array(
             'methods' => 'GET',
             'callback' => array($this, 'sg_check_stripe_customer_id'),
+        ));
+
+        register_rest_route('stripe-payment-gateway/v1', '/users', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'sg_create_user_account'),
         ));
     }
 

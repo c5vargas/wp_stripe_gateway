@@ -20,20 +20,22 @@
 require_once plugin_dir_path(__FILE__) . 'stripe-php/init.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-sg-admin.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-sg-endpoints.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-sg-authentication.php';
 
 add_action('init', 'sg_init');
 
 function sg_init() {
 
     if (!class_exists('WooCommerce')) {
-        add_action('admin_notices', 'mi_plugin_missing_wc_notice');
+        add_action('admin_notices', 'sg_missing_wc_notice');
     }
 
     new SG_Admin();
     new SG_Endpoints();
+    new SG_Auth();
 }
 
-function mi_plugin_missing_wc_notice() {
+function sg_missing_wc_notice() {
     echo '<div class="notice notice-error is-dismissible">
         <p>Stripe Gateway requiere que WooCommerce esté instalado y activo. Por favor, asegúrate de activar WooCommerce antes de activar este plugin.</p>
     </div>';
