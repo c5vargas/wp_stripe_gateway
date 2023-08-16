@@ -184,16 +184,19 @@ class SG_Endpoints {
         register_rest_route('stripe-payment-gateway/v1', '/create-payment-intent', array(
             'methods' => 'POST',
             'callback' => array($this, 'sg_create_payment_intent'),
+            'permission_callback' => '__return_true'
         ));
 
         register_rest_route('stripe-payment-gateway/v1', '/check-authentication', array(
             'methods' => 'GET',
             'callback' => array($this, 'sg_check_stripe_customer_id'),
+            'permission_callback' => '__return_true'
         ));
 
         register_rest_route('stripe-payment-gateway/v1', '/users', array(
             'methods' => 'POST',
             'callback' => array($this, 'sg_create_user_account'),
+            'permission_callback' => '__return_true'
         ));
     }
 

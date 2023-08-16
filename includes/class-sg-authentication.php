@@ -21,6 +21,9 @@ class SG_Auth {
     }
 
     function add_data_to_jwt($data, $user) {
+        if(!$user)
+            return $data;
+
         $customer = new WC_Customer($user->ID);
         
         // Woo
@@ -53,6 +56,10 @@ class SG_Auth {
     function get_custom_fields( $object, $field_name, $request ) {
         $data = array();
         $user = get_user_by('id', $object['id'] );
+
+        if(!$user)
+            return $data;
+
         $customer = new WC_Customer($object['id']);
         
         // Woo
