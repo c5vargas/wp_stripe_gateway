@@ -1,18 +1,18 @@
 <?php
 /**
- * Stripe Gateway for PWA Plugin
+ * WP Almomento for PWA Plugin
  *
  * @copyright Copyright (C) 2023, Jaestic - jaestic@jaestic.com
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License, version 3 or higher
  *
  * @wordpress-plugin
- * Plugin Name: WP Stripe Gateway for PWA
+ * Plugin Name: WP Almomento for PWA Plugin
  * Version:     1.1
  * Plugin URI:  https://github.com/c5vargas/wp_secret-love-hotels
- * Description: Description: Este plugin te permite integrar la pasarela de pago Stripe en tu tienda WooCommerce para aceptar pagos con tarjetas de crédito y débito.
+ * Description: Description: Este plugin te permite integrar una PWA enfocada al ecommerce utilizando tu Wordpress como API para obtener los productos y comprar mediante stripe.
  * Author:      Jaestic
  * Author URI:  https://jaestic.com
- * Text Domain: wpstripegateway
+ * Text Domain: wp_almomento
  * Requires at least: 6.2
  * Requires PHP: 7.4
  */
@@ -37,6 +37,6 @@ function sg_init() {
 
 function sg_missing_wc_notice() {
     echo '<div class="notice notice-error is-dismissible">
-        <p>Stripe Gateway requiere que WooCommerce esté instalado y activo. Por favor, asegúrate de activar WooCommerce antes de activar este plugin.</p>
+        <p>WP Almomento requiere que WooCommerce esté instalado y activo. Por favor, asegúrate de activar WooCommerce antes de activar este plugin.</p>
     </div>';
 }

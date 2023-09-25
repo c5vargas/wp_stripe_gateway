@@ -1,9 +1,9 @@
 <?php
 /**
- * StripeGateway Endpoints
+ * WPAlmomento Endpoints
  *
  * @class    SG_Endpoints
- * @package  StripeGateway\Endpoints
+ * @package  WPAlmomento\Endpoints
  * @version  1.0
  */
 

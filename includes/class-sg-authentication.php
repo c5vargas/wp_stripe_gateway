@@ -1,9 +1,9 @@
 <?php
 /**
- * StripeGateway Auth
+ * WPAlmomento Auth
  *
  * @class    SG_Auth
- * @package  StripeGateway\Auth
+ * @package  WPAlmomento\Auth
  * @version  1.0
  */
 

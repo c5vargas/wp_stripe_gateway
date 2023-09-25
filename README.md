@@ -1,8 +1,8 @@
-![Stripe Gateway](https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Stripe_Logo%2C_revised_2016.svg/2560px-Stripe_Logo%2C_revised_2016.svg.png)
+![WP Almomento](https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Stripe_Logo%2C_revised_2016.svg/2560px-Stripe_Logo%2C_revised_2016.svg.png)
 
-# Stripe Gateway Plugin
+# WP Almomento Plugin
 
-El plugin Stripe Gateway te permite integrar la pasarela de pago de Stripe en tu tienda WooCommerce para aceptar pagos con tarjetas de crédito y débito.
+El plugin WP Almomento te permite integrar la pasarela de pago de Stripe en tu tienda WooCommerce para aceptar pagos con tarjetas de crédito y débito.
 
 ## Características
 
@@ -28,7 +28,7 @@ El plugin Stripe Gateway te permite integrar la pasarela de pago de Stripe en tu
 ## Configuración
 
 1. Obtén tu Private Key de Stripe desde el [dashboard de Stripe](https://dashboard.stripe.com).
-2. En el panel de administración de WordPress, ve a "Stripe Gateway" en el menú lateral.
+2. En el panel de administración de WordPress, ve a "WP Almomento" en el menú lateral.
 3. Introduce tu Private Key de Stripe en el campo correspondiente y haz clic en "Guardar cambios".
 
 ## Soporte
