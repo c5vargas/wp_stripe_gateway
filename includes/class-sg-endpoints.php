@@ -235,6 +235,42 @@ class SG_Endpoints {
             'results' => $simplified_data
         );
     }
+
+    function sg_create_order($request) {
+        $parameters 	= $request->get_params();
+        $billing        = $parameters['billing'];
+        $shipping       = $parameters['shipping'];
+        $customerId     = $parameters['customer_id'];
+        $lineItems      = $parameters['line_items'];
+        $paymentMethod  = $parameters['payment_method'];
+        $setPaid        = $parameters['set_paid'];
+        $paymentMethodTitle  = $parameters['payment_method_title'];
+        $shippingLines  = $parameters['shipping_lines'];
+
+        $shippingOrder = new WC_Order_Item_Shipping();
+        $shippingOrder->set_method_title( $shippingLines['method_title'] );
+        $shippingOrder->set_method_id( $shippingLines['method_id'] );
+        $shippingOrder->set_total( $shippingLines['total'] );
+
+        $order = wc_create_order();
+
+        for ($i=0; $i < count($lineItems); $i++) { 
+            $order->add_product(  get_product($lineItems[$i]['product_id']), $lineItems[$i]['quantity'] );
+        }
+
+        $order->set_customer_id( 1 );
+        $order->set_address( $billing, 'billing' );
+        $order->set_address( $shipping, 'shipping' );
+        $order->set_customer_id($customerId);
+        $order->set_payment_method( $paymentMethod );
+        $order->set_payment_method_title( $paymentMethodTitle );
+        $order->add_item($shippingOrder);
+        // $order->add_coupon('Fresher','10','2');
+        $order->calculate_totals();
+
+        
+        return json_encode($order->get_data());
+    }
     
     function sg_register_api_route() {
         register_rest_route('stripe-payment-gateway/v1', '/create-payment-intent', array(
@@ -258,6 +294,12 @@ class SG_Endpoints {
         register_rest_route('stripe-payment-gateway/v1', '/products', array(
             'methods' => 'GET',
             'callback' => array($this, 'sg_get_products'),
+            'permission_callback' => '__return_true'
+        ));
+
+        register_rest_route('stripe-payment-gateway/v1', '/create-order', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'sg_create_order'),
             'permission_callback' => '__return_true'
         ));
     }
