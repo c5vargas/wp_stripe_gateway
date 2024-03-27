@@ -40,3 +40,11 @@ function sg_missing_wc_notice() {
         <p>WP Almomento requiere que WooCommerce esté instalado y activo. Por favor, asegúrate de activar WooCommerce antes de activar este plugin.</p>
     </div>';
 }
+
+add_action( 'woocommerce_api_loaded', function(){
+	include_once( 'class-wc-api-custom.php' );
+});
+add_filter( 'woocommerce_api_classes', function( $classes ){
+	$classes[] = 'WC_API_Custom';
+	return $classes;
+});

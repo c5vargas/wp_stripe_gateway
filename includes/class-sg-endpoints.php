@@ -179,6 +179,62 @@ class SG_Endpoints {
             );
         }
     }
+
+    function getCatTermById($catId) {
+        $product_term_args = array(
+            'taxonomy' => 'product_cat',
+            'include' => $catId,
+            'orderby'  => 'include'
+        );
+        $product_terms = get_terms($product_term_args);
+
+        $product_term_slugs = [];
+        foreach ($product_terms as $product_term) {
+            $product_term_slugs[] = $product_term->slug;
+        }
+
+        return $product_term_slugs;
+    }
+
+    function sg_get_products($request) {
+        $parameters 	= $request->get_params();
+        $category       = sanitize_text_field($parameters['category']);
+        $onSale         = sanitize_text_field($parameters['on_sale']);
+        $featured       = sanitize_text_field($parameters['featured']);
+        $orderBy        = sanitize_text_field($parameters['orderby']);
+        $perPage        = sanitize_text_field($parameters['per_page']);
+
+        $categoryTerm = $this->getCatTermById($category);
+
+
+        $args = array(
+            'category' => $categoryTerm,
+            'orderby'  => 'name',
+        );
+
+        if($onSale) {
+            $sales_ids = wc_get_product_ids_on_sale();
+            $args['include'] = $sales_ids;
+        }
+
+        if($featured) $args['featured'] = $featured;
+        if($orderBy) $args['orderby'] = $orderBy;
+        if($perPage) $args['limit'] = $perPage;
+
+        $products = wc_get_products( $args );
+        $simplified_data = array();
+
+        foreach ($products as $key => $single_product_data) {
+            $data = $single_product_data->get_data();
+            $simplified_data[$key] = $data;
+            $simplified_data[$key]['image'] = wp_get_attachment_image_url($data['image_id'], 'full');
+        }
+
+        return array(
+            'status' => true,
+            'results' => $simplified_data
+        );
+    }
     
     function sg_register_api_route() {
         register_rest_route('stripe-payment-gateway/v1', '/create-payment-intent', array(
@@ -196,6 +252,12 @@ class SG_Endpoints {
         register_rest_route('stripe-payment-gateway/v1', '/users', array(
             'methods' => 'POST',
             'callback' => array($this, 'sg_create_user_account'),
+            'permission_callback' => '__return_true'
+        ));
+
+        register_rest_route('stripe-payment-gateway/v1', '/products', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'sg_get_products'),
             'permission_callback' => '__return_true'
         ));
     }
