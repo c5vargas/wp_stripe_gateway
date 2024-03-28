@@ -246,11 +246,12 @@ class SG_Endpoints {
         $setPaid        = $parameters['set_paid'];
         $paymentMethodTitle  = $parameters['payment_method_title'];
         $shippingLines  = $parameters['shipping_lines'];
+        $couponLines  = $parameters['coupon_lines'];
 
         $shippingOrder = new WC_Order_Item_Shipping();
-        $shippingOrder->set_method_title( $shippingLines['method_title'] );
-        $shippingOrder->set_method_id( $shippingLines['method_id'] );
-        $shippingOrder->set_total( $shippingLines['total'] );
+        $shippingOrder->set_method_title( $shippingLines[0]['method_title'] );
+        $shippingOrder->set_method_id( $shippingLines[0]['method_id'] );
+        $shippingOrder->set_total( floatval($shippingLines[0]['total']) );
 
         $order = wc_create_order();
 
@@ -261,13 +262,12 @@ class SG_Endpoints {
         $order->set_customer_id( 1 );
         $order->set_address( $billing, 'billing' );
         $order->set_address( $shipping, 'shipping' );
+        $order->add_item($shippingOrder);
         $order->set_customer_id($customerId);
         $order->set_payment_method( $paymentMethod );
         $order->set_payment_method_title( $paymentMethodTitle );
-        $order->add_item($shippingOrder);
-        // $order->add_coupon('Fresher','10','2');
+        $order->apply_coupon($couponLines[0]['code']);
         $order->calculate_totals();
-
         
         return json_encode($order->get_data());
     }
