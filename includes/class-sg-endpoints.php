@@ -228,6 +228,20 @@ class SG_Endpoints {
             $data = $single_product_data->get_data();
             $simplified_data[$key] = $data;
             $simplified_data[$key]['image'] = wp_get_attachment_image_url($data['image_id'], 'full');
+
+            if ($single_product_data->is_type('variable')) {
+                $variation_ids = $single_product_data->get_children();
+                $variations = array();
+        
+                foreach ($variation_ids as $variation_id) {
+                    $variation = new WC_Product_Variation($variation_id);
+                    $variation_data = $variation->get_data();
+                    $variation_data['image'] = wp_get_attachment_image_url($data['image_id'], 'full');
+                    $variations[] = $variation_data;
+                }
+        
+                $simplified_data[$key]['variations'] = $variations;
+            }
         }
 
         return array(
