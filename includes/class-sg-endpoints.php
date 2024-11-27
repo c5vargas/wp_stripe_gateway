@@ -17,8 +17,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 class SG_Endpoints {
 
 	public function __construct() {
-        \Stripe\Stripe::setApiKey(get_option('stripe_private_key'));
-
 		add_action('rest_api_init', array($this, 'sg_register_api_route'));
 	}
 
@@ -33,105 +31,10 @@ class SG_Endpoints {
             );
         }
 
-        $stripeCustomerId = get_user_meta($user_id, 'customer_stripe_id');
-
-        if(empty($stripeCustomerId)) {
-            try {
-                $customer = new WC_Customer( $user_id );
-                $customerData = [
-                    'email' => $customer->get_email(),
-                    'name' => $customer->get_first_name().' '.$customer->get_last_name(),
-                    'phone' => $customer->get_billing_phone(),
-                    'address' => [
-                        'city' => $customer->get_billing_city(),
-                        'country' => $customer->get_billing_country(),
-                        'line1' => $customer->get_billing_address_1(),
-                        'line2' => $customer->get_billing_address_2(),
-                        'postal_code' => $customer->get_billing_postcode(),
-                        'state' => $customer->get_billing_state(),
-                    ],
-                ];
-
-                $stripeCustomer = \Stripe\Customer::create($customerData);
-                update_user_meta($user_id, 'customer_stripe_id', $stripeCustomer->id);
-    
-                return array(
-                    'status' => true,
-                    'message' => __( "The stripe client has been generated successfully.", 'wc-rest-payment' )
-                );
-            } catch (\Stripe\Exception\ApiErrorException $e) {
-                return array(
-                    'status' => false,
-                    'message' => $e->getMessage()
-                );
-            }
-        }
-
         return array(
             'status' => true,
             'message' => __( "The stripe client has already been previously generated.", 'wc-rest-payment' )
         );
-    }
-
-    function sg_create_payment_intent($request) {
-        try {
-            $parameters 	= $request->get_params();
-            $order_id       = sanitize_text_field($parameters['order_id']);
-
-            if(empty($order_id)){
-                return array(
-                    'status' => false,
-                    'client_secret' => null,
-                    'message' => __( "Order ID 'order_id' is required.", 'wc-rest-payment' )
-                );
-            }
-    
-            $order = new WC_Order($order_id);
-    
-            if(!$order) {
-                return array(
-                    'status' => false,
-                    'client_secret' => null,
-                    'message' => __( 'Order is empty.', 'wc-rest-payment' )
-                );
-            }
-            
-            $userId = get_current_user_id();
-            $stripeCustomerId = get_user_meta($userId, 'customer_stripe_id');
-
-            $paymentIntent = \Stripe\PaymentIntent::create([
-                'amount'        => floatval($order->get_total()) * 100,
-                'currency'      => 'EUR',
-                'customer'      => $stripeCustomerId ? $stripeCustomerId[0] : null,
-                'metadata'      => ['order_id' => $order_id],
-                'description'   => "WC Pedido #". $order_id,
-                'shipping'      => [
-                    'address'       => [
-                        'city' => $order->get_shipping_city(),
-                        'country' => $order->get_shipping_country(),
-                        'line1' => $order->get_shipping_address_1(),
-                        'line2' => $order->get_shipping_address_2(),
-                        'postal_code' => $order->get_shipping_postcode(),
-                        'state' => $order->get_shipping_state(),
-                    ],
-                    'name'          => $order->get_shipping_first_name()." ". $order->get_shipping_last_name(),
-                    'phone'         => $order->get_shipping_phone()
-                ],
-            ]);
-    
-            return array(
-                'status' => true,
-                'client_secret' => $paymentIntent->client_secret,
-                'message' => null
-            );
-    
-        } catch (\Stripe\Exception\ApiErrorException $e) {    
-            return array(
-                'status' => false,
-                'client_secret' => null,
-                'message' => $e->getMessage()
-            );
-        }
     }
     
     function sg_create_user_account($request) {
@@ -250,6 +153,65 @@ class SG_Endpoints {
         );
     }
 
+    function sg_get_products_by_id($request) {
+        // Obtener el parámetro 'productIds' del request.
+        $product_ids = $request->get_param('productIds');
+    
+        // Validar que el parámetro sea un array y no esté vacío.
+        if (!is_array($product_ids) || empty($product_ids)) {
+            return rest_ensure_response([
+                'error' => 'Invalid or missing "productIds" parameter.'
+            ], 400);
+        }
+    
+        // Preparar los argumentos para filtrar los productos por IDs.
+        $args = [
+            'include' => $product_ids,
+            'limit'   => count($product_ids),
+            'status'  => 'publish', // Solo productos publicados.
+        ];
+    
+        // Obtener los productos usando WooCommerce.
+        $products = wc_get_products($args);
+    
+        // Crear un array para almacenar los datos simplificados.
+        $simplified_data = [];
+    
+        foreach ($products as $single_product) {
+            // Obtener los datos básicos del producto.
+            $product_data = $single_product->get_data();
+    
+            // Agregar la URL de la imagen principal del producto.
+            $product_data['image'] = wp_get_attachment_image_url($product_data['image_id'], 'full');
+    
+            // Si el producto es de tipo variable, procesar sus variaciones.
+            if ($single_product->is_type('variable')) {
+                $variation_ids = $single_product->get_children();
+                $variations = [];
+    
+                foreach ($variation_ids as $variation_id) {
+                    $variation = new WC_Product_Variation($variation_id);
+                    $variation_data = $variation->get_data();
+                    $variation_data['image'] = wp_get_attachment_image_url($variation_data['image_id'], 'full');
+                    $variations[] = $variation_data;
+                }
+    
+                // Añadir las variaciones al producto.
+                $product_data['variations'] = $variations;
+            }
+    
+            // Agregar el producto procesado al array de resultados.
+            $simplified_data[] = $product_data;
+        }
+    
+        // Devolver la respuesta con los productos simplificados.
+        return rest_ensure_response([
+            'status' => true,
+            'results' => $simplified_data
+        ]);
+    }
+
+
     function sg_create_order($request) {
         $parameters 	= $request->get_params();
         $billing        = $parameters['billing'];
@@ -287,12 +249,6 @@ class SG_Endpoints {
     }
     
     function sg_register_api_route() {
-        register_rest_route('stripe-payment-gateway/v1', '/create-payment-intent', array(
-            'methods' => 'POST',
-            'callback' => array($this, 'sg_create_payment_intent'),
-            'permission_callback' => '__return_true'
-        ));
-
         register_rest_route('stripe-payment-gateway/v1', '/check-authentication', array(
             'methods' => 'GET',
             'callback' => array($this, 'sg_check_stripe_customer_id'),
@@ -308,6 +264,12 @@ class SG_Endpoints {
         register_rest_route('stripe-payment-gateway/v1', '/products', array(
             'methods' => 'GET',
             'callback' => array($this, 'sg_get_products'),
+            'permission_callback' => '__return_true'
+        ));
+
+        register_rest_route('stripe-payment-gateway/v1', '/products-by-id', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'sg_get_products_by_id'),
             'permission_callback' => '__return_true'
         ));
 

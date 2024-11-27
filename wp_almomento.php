@@ -7,8 +7,8 @@
  *
  * @wordpress-plugin
  * Plugin Name: WP Almomento for PWA Plugin
- * Version:     1.1
- * Plugin URI:  https://github.com/c5vargas/wp_secret-love-hotels
+ * Version:     1.2
+ * Plugin URI:  https://github.com/c5vargas/wp_almomento
  * Description: Description: Este plugin te permite integrar una PWA enfocada al ecommerce utilizando tu Wordpress como API para obtener los productos y comprar mediante stripe.
  * Author:      Jaestic
  * Author URI:  https://jaestic.com
@@ -17,8 +17,6 @@
  * Requires PHP: 7.4
  */
 
-require_once plugin_dir_path(__FILE__) . 'stripe-php/init.php';
-require_once plugin_dir_path(__FILE__) . 'includes/class-sg-admin.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-sg-endpoints.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-sg-authentication.php';
 
