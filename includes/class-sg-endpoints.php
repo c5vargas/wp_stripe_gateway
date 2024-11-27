@@ -1,4 +1,5 @@
 <?php
+
 /**
  * WPAlmomento Endpoints
  *
@@ -106,6 +107,7 @@ class SG_Endpoints {
         $featured       = sanitize_text_field($parameters['featured']);
         $orderBy        = sanitize_text_field($parameters['orderby']);
         $perPage        = sanitize_text_field($parameters['per_page']);
+        $search         = sanitize_text_field($parameters['search']);
 
         $categoryTerm = $this->getCatTermById($category);
 
@@ -123,6 +125,7 @@ class SG_Endpoints {
         if($featured) $args['featured'] = $featured;
         if($orderBy) $args['orderby'] = $orderBy;
         if($perPage) $args['limit'] = $perPage;
+        if($search) $args['s'] = $search;
 
         $products = wc_get_products( $args );
         $simplified_data = array();
@@ -164,29 +167,51 @@ class SG_Endpoints {
             ], 400);
         }
     
-        // Preparar los argumentos para filtrar los productos por IDs.
-        $args = [
-            'include' => $product_ids,
-            'limit'   => count($product_ids),
-            'status'  => 'publish', // Solo productos publicados.
-        ];
-    
-        // Obtener los productos usando WooCommerce.
-        $products = wc_get_products($args);
-    
-        // Crear un array para almacenar los datos simplificados.
         $simplified_data = [];
     
-        foreach ($products as $single_product) {
-            // Obtener los datos básicos del producto.
-            $product_data = $single_product->get_data();
+        foreach ($product_ids as $product_id) {
+            // Intentar obtener el producto.
+            $product = wc_get_product($product_id);
     
-            // Agregar la URL de la imagen principal del producto.
-            $product_data['image'] = wp_get_attachment_image_url($product_data['image_id'], 'full');
+            // Si no se encuentra, intentar cargarlo como variación.
+            if (!$product) {
+                if ('product_variation' === get_post_type($product_id)) {
+                    $product = new WC_Product_Variation($product_id);
+                } else {
+                    continue; // Saltar si el ID no es válido.
+                }
+            }
     
-            // Si el producto es de tipo variable, procesar sus variaciones.
-            if ($single_product->is_type('variable')) {
-                $variation_ids = $single_product->get_children();
+            // Obtener los datos básicos del producto o variación.
+            $product_data = $product->get_data();
+
+            if ($product->is_type('variation')) {
+                $parent_id = $product->get_parent_id();
+                $parent_product = wc_get_product($parent_id);
+    
+                // Obtener la imagen del producto padre si no hay imagen en la variación.
+                if ($parent_product) {
+                    $parent_image = wp_get_attachment_image_url($parent_product->get_image_id(), 'full');
+                    $product_data['image'] = wp_get_attachment_image_url($product->get_image_id(), 'full') ?: $parent_image;
+    
+                    // Añadir datos base del producto padre.
+                    $product_data['parent'] = [
+                        'id'       => $parent_id,
+                        'name'     => $parent_product->get_name(),
+                        'image'    => $parent_image,
+                        'price'    => $parent_product->get_price(),
+                        'sku'      => $parent_product->get_sku(),
+                        'category' => wp_get_post_terms($parent_id, 'product_cat', ['fields' => 'names']),
+                    ];
+                }
+            } else {
+                // Si es un producto regular, agregar su imagen directamente.
+                $product_data['image'] = wp_get_attachment_image_url($product->get_image_id(), 'full');
+            }
+
+            // Si es un producto variable, agregar sus variaciones.
+            if ($product->is_type('variable')) {
+                $variation_ids = $product->get_children();
                 $variations = [];
     
                 foreach ($variation_ids as $variation_id) {
@@ -196,11 +221,15 @@ class SG_Endpoints {
                     $variations[] = $variation_data;
                 }
     
-                // Añadir las variaciones al producto.
                 $product_data['variations'] = $variations;
             }
     
-            // Agregar el producto procesado al array de resultados.
+            // Si es una variación, agregar el ID del producto padre.
+            if ($product->is_type('variation')) {
+                $product_data['parent_id'] = $product->get_parent_id();
+            }
+    
+            // Agregar el producto o variación procesado al array de resultados.
             $simplified_data[] = $product_data;
         }
     
@@ -210,7 +239,6 @@ class SG_Endpoints {
             'results' => $simplified_data
         ]);
     }
-
 
     function sg_create_order($request) {
         $parameters 	= $request->get_params();
@@ -222,7 +250,8 @@ class SG_Endpoints {
         $setPaid        = $parameters['set_paid'];
         $paymentMethodTitle  = $parameters['payment_method_title'];
         $shippingLines  = $parameters['shipping_lines'];
-        $couponLines  = $parameters['coupon_lines'];
+        $couponLines    = $parameters['coupon_lines'];
+        $notes          = $parameters['notes'];
 
         $shippingOrder = new WC_Order_Item_Shipping();
         $shippingOrder->set_method_title( $shippingLines[0]['method_title'] );
@@ -233,6 +262,20 @@ class SG_Endpoints {
 
         for ($i=0; $i < count($lineItems); $i++) { 
             $order->add_product(  get_product($lineItems[$i]['product_id']), $lineItems[$i]['quantity'] );
+        }
+
+        if($notes) {
+            $comment_data = array(
+                'comment_post_ID' => $order->id,
+                'comment_author' => 'Sistema',
+                'comment_author_email' => 'no-reply@almomento.cat',
+                'comment_content' => $notes,
+                'comment_type' => 'order_note',
+                'comment_approved' => 1,
+            );
+            
+            // Insertar el comentario en la base de datos.
+            wp_insert_comment($comment_data);
         }
 
         $order->set_customer_id( 1 );
@@ -268,7 +311,7 @@ class SG_Endpoints {
         ));
 
         register_rest_route('stripe-payment-gateway/v1', '/products-by-id', array(
-            'methods' => 'GET',
+            'methods' => 'POST',
             'callback' => array($this, 'sg_get_products_by_id'),
             'permission_callback' => '__return_true'
         ));

@@ -1,25 +1,25 @@
 <?php
+
 /**
  * Plugin Name: WP Almomento for PWA Plugin
- * Version:     2.0.0
- * Plugin URI:  https://github.com/c5vargas/wp_almomento
  * Description: Este plugin te permite integrar una PWA enfocada al ecommerce utilizando tu Wordpress como API para obtener los productos.
- * Author:      Jaestic
- * Author URI:  https://jaestic.com
- * Text Domain: wp_almomento
- * @copyright Copyright (C) 2023, Jaestic - jaestic@jaestic.com
- * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License, version 3 or higher
+ * Version: 2.0.7
+ * Author: Jaestic S.L
+ * Text Domain: wp-almomento
  */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 require_once plugin_dir_path(__FILE__) . 'includes/class-sg-endpoints.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-sg-authentication.php';
 
-add_action('init', 'sg_init');
 
 function sg_init() {
-
     if (!class_exists('WooCommerce')) {
         add_action('admin_notices', 'sg_missing_wc_notice');
+        return;
     }
 
     new SG_Endpoints();
@@ -35,7 +35,10 @@ function sg_missing_wc_notice() {
 add_action( 'woocommerce_api_loaded', function(){
 	include_once( 'class-wc-api-custom.php' );
 });
+
 add_filter( 'woocommerce_api_classes', function( $classes ){
 	$classes[] = 'WC_API_Custom';
 	return $classes;
 });
+
+add_action('init', 'sg_init');
