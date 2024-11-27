@@ -2,13 +2,11 @@
 
 # WP Almomento Plugin
 
-El plugin WP Almomento te permite integrar la pasarela de pago de Stripe en tu tienda WooCommerce para aceptar pagos con tarjetas de crédito y débito.
+Este plugin te permite integrar una PWA enfocada al ecommerce utilizando tu Wordpress como API para obtener los productos.
 
 ## Características
 
 - Acepta pagos con tarjetas de crédito y débito de forma segura y sencilla.
-- Integración sin complicaciones con la API de Stripe.
-- Configuración rápida y fácil a través del panel de administración de WordPress.
 - Proporciona una experiencia de pago rápida y confiable para tus clientes.
 - Compatible con las últimas versiones de WordPress y WooCommerce.
 
@@ -24,12 +22,6 @@ El plugin WP Almomento te permite integrar la pasarela de pago de Stripe en tu t
 2. En el panel de administración de WordPress, ve a "Plugins" > "Añadir nuevo" > "Subir plugin".
 3. Selecciona el archivo ZIP descargado y haz clic en "Instalar ahora".
 4. Activa el plugin desde la página de plugins.
-
-## Configuración
-
-1. Obtén tu Private Key de Stripe desde el [dashboard de Stripe](https://dashboard.stripe.com).
-2. En el panel de administración de WordPress, ve a "WP Almomento" en el menú lateral.
-3. Introduce tu Private Key de Stripe en el campo correspondiente y haz clic en "Guardar cambios".
 
 ## Soporte
 

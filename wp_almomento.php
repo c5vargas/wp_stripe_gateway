@@ -1,20 +1,14 @@
 <?php
 /**
- * WP Almomento for PWA Plugin
- *
- * @copyright Copyright (C) 2023, Jaestic - jaestic@jaestic.com
- * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License, version 3 or higher
- *
- * @wordpress-plugin
  * Plugin Name: WP Almomento for PWA Plugin
- * Version:     1.2
+ * Version:     2.0.0
  * Plugin URI:  https://github.com/c5vargas/wp_almomento
- * Description: Description: Este plugin te permite integrar una PWA enfocada al ecommerce utilizando tu Wordpress como API para obtener los productos y comprar mediante stripe.
+ * Description: Este plugin te permite integrar una PWA enfocada al ecommerce utilizando tu Wordpress como API para obtener los productos.
  * Author:      Jaestic
  * Author URI:  https://jaestic.com
  * Text Domain: wp_almomento
- * Requires at least: 6.2
- * Requires PHP: 7.4
+ * @copyright Copyright (C) 2023, Jaestic - jaestic@jaestic.com
+ * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License, version 3 or higher
  */
 
 require_once plugin_dir_path(__FILE__) . 'includes/class-sg-endpoints.php';
@@ -28,7 +22,6 @@ function sg_init() {
         add_action('admin_notices', 'sg_missing_wc_notice');
     }
 
-    new SG_Admin();
     new SG_Endpoints();
     new SG_Auth();
 }
