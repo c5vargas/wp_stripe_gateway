@@ -108,24 +108,27 @@ class SG_Endpoints {
         $orderBy        = sanitize_text_field($parameters['orderby']);
         $perPage        = sanitize_text_field($parameters['per_page']);
         $search         = sanitize_text_field($parameters['search']);
+        $product_ids  = isset($parameters['include']) ? array_map('sanitize_text_field', explode(',', $parameters['include'])) : [];
 
         $categoryTerm = $this->getCatTermById($category);
 
-
         $args = array(
-            'category' => $categoryTerm,
             'orderby'  => 'name',
         );
 
-        if($onSale) {
-            $sales_ids = wc_get_product_ids_on_sale();
-            $args['include'] = $sales_ids;
+        if (!empty($product_ids)) {
+            $args['include'] = $product_ids;
+        } else {
+            if ($category) $args['category'] = $categoryTerm;
+            if ($onSale) {
+                $sales_ids = wc_get_product_ids_on_sale();
+                $args['include'] = $sales_ids;
+            }
+            if ($featured) $args['featured'] = $featured;
+            if ($orderBy) $args['orderby'] = $orderBy;
+            if ($perPage) $args['limit'] = $perPage;
+            if ($search) $args['s'] = $search;
         }
-
-        if($featured) $args['featured'] = $featured;
-        if($orderBy) $args['orderby'] = $orderBy;
-        if($perPage) $args['limit'] = $perPage;
-        if($search) $args['s'] = $search;
 
         $products = wc_get_products( $args );
         $simplified_data = array();
