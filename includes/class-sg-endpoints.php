@@ -115,6 +115,7 @@ class SG_Endpoints {
         $args = array(
             'orderby'  => 'name',
             'post_status' => 'publish',
+            'stock_status' => 'instock'
         );
 
         if (!empty($product_ids)) {
