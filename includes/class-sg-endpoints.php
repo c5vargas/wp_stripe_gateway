@@ -114,6 +114,7 @@ class SG_Endpoints {
 
         $args = array(
             'orderby'  => 'name',
+            'post_status' => 'publish',
         );
 
         if (!empty($product_ids)) {
